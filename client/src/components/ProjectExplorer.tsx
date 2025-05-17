@@ -154,6 +154,26 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     }
   };
 
+  // Fixed implementation that doesn't use hooks in render
+  const renderProjects = () => {
+    return projects.map((project) => {
+      const isExpanded = expandedProjects.includes(project.id);
+      
+      // Separate query outside the render function for each project
+      return (
+        <ProjectItem 
+          key={project.id}
+          project={project}
+          isExpanded={isExpanded}
+          toggleExpand={toggleExpand}
+          openNewFileDialog={openNewFileDialog}
+          onFileSelect={onFileSelect}
+          getFileIcon={getFileIcon}
+        />
+      );
+    });
+  };
+
   return (
     <>
       <Card className="bg-muted rounded-xl border-border overflow-hidden h-full">
@@ -172,59 +192,7 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
         </CardHeader>
         <CardContent className="px-3 py-2">
           <div className="space-y-1">
-            {projects.map((project) => {
-              const isExpanded = expandedProjects.includes(project.id);
-              
-              // Query to get files for this project if expanded
-              const { data: files = [] } = useQuery<File[]>({
-                queryKey: [`/api/files/project/${project.id}`],
-                enabled: isExpanded,
-              });
-              
-              return (
-                <div key={project.id} className="mb-2">
-                  <div 
-                    className={`flex items-center justify-between py-2 px-2 rounded cursor-pointer ${
-                      isExpanded ? 'bg-background text-primary' : ''
-                    }`}
-                    onClick={() => toggleExpand(project.id)}
-                  >
-                    <div className="flex items-center">
-                      <i className={`ri-folder-${isExpanded ? 'open-' : ''}line mr-2 text-primary`}></i>
-                      <span className="text-sm font-medium">{project.name}</span>
-                    </div>
-                    <div className="flex space-x-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-6 w-6 p-0"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openNewFileDialog(project.id);
-                        }}
-                      >
-                        <i className="ri-add-line text-sm"></i>
-                      </Button>
-                    </div>
-                  </div>
-                  
-                  {isExpanded && (
-                    <div className="pl-6 space-y-1">
-                      {files.map((file: File) => (
-                        <div 
-                          key={file.id}
-                          className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer"
-                          onClick={() => onFileSelect(file.id)}
-                        >
-                          <i className={`${getFileIcon(file.fileType)} mr-2`}></i>
-                          <span>{file.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {renderProjects()}
           </div>
         </CardContent>
       </Card>
@@ -307,5 +275,67 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
         </DialogContent>
       </Dialog>
     </>
+  );
+}
+
+// Separate component for project items to avoid hook issues
+interface ProjectItemProps {
+  project: Project;
+  isExpanded: boolean;
+  toggleExpand: (id: number) => void;
+  openNewFileDialog: (id: number) => void;
+  onFileSelect: (fileId: number) => void;
+  getFileIcon: (fileType: string) => string;
+}
+
+function ProjectItem({ project, isExpanded, toggleExpand, openNewFileDialog, onFileSelect, getFileIcon }: ProjectItemProps) {
+  // Query to get files for this project if expanded
+  const { data: files = [] } = useQuery<File[]>({
+    queryKey: [`/api/files/project/${project.id}`],
+    enabled: isExpanded,
+  });
+
+  return (
+    <div key={project.id} className="mb-2">
+      <div 
+        className={`flex items-center justify-between py-2 px-2 rounded cursor-pointer ${
+          isExpanded ? 'bg-background text-primary' : ''
+        }`}
+        onClick={() => toggleExpand(project.id)}
+      >
+        <div className="flex items-center">
+          <i className={`ri-folder-${isExpanded ? 'open-' : ''}line mr-2 text-primary`}></i>
+          <span className="text-sm font-medium">{project.name}</span>
+        </div>
+        <div className="flex space-x-1">
+          <Button 
+            size="sm" 
+            variant="ghost" 
+            className="h-6 w-6 p-0"
+            onClick={(e) => {
+              e.stopPropagation();
+              openNewFileDialog(project.id);
+            }}
+          >
+            <i className="ri-add-line text-sm"></i>
+          </Button>
+        </div>
+      </div>
+      
+      {isExpanded && (
+        <div className="pl-6 space-y-1">
+          {files.map((file) => (
+            <div 
+              key={file.id}
+              className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer"
+              onClick={() => onFileSelect(file.id)}
+            >
+              <i className={`${getFileIcon(file.fileType)} mr-2`}></i>
+              <span>{file.name}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
