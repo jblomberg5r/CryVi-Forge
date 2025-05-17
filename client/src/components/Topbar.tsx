@@ -61,10 +61,8 @@ export function Topbar({ onNewProject }: TopbarProps) {
         >
           <i className="ri-notification-3-line"></i>
         </Button>
-        <Link href="/profile">
-          <a className="w-8 h-8 rounded-full bg-muted-foreground flex items-center justify-center text-background">
-            <i className="ri-user-line"></i>
-          </a>
+        <Link href="/profile" className="w-8 h-8 rounded-full bg-muted-foreground flex items-center justify-center text-background">
+          <i className="ri-user-line"></i>
         </Link>
       </div>
     </div>

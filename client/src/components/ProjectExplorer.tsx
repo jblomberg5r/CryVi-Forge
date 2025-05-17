@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -94,14 +93,6 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     }
   });
 
-  // Function to get files by project
-  const getFilesByProject = (projectId: number) => {
-    return useQuery<File[]>({
-      queryKey: [`/api/files/project/${projectId}`],
-      enabled: expandedProjects.includes(projectId),
-    });
-  };
-
   // Toggle project expansion
   const toggleExpand = (projectId: number) => {
     setExpandedProjects(prev => 
@@ -166,127 +157,105 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
   return (
     <>
       <Card className="bg-muted rounded-xl border-border overflow-hidden h-full">
-        <CardHeader className="p-4 border-b border-border flex items-center justify-between">
-          <CardTitle className="font-semibold">Project Explorer</CardTitle>
-          <div className="flex">
-            <Button size="icon" variant="ghost" className="h-8 w-8">
-              <i className="ri-refresh-line text-muted-foreground"></i>
-            </Button>
-            <Button size="icon" variant="ghost" className="h-8 w-8" onClick={() => setNewProjectDialogOpen(true)}>
-              <i className="ri-add-line text-muted-foreground"></i>
+        <CardHeader className="py-3 px-4">
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-md font-medium">Projects</CardTitle>
+            <Button 
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0"
+              onClick={() => setNewProjectDialogOpen(true)}
+            >
+              <i className="ri-add-line"></i>
             </Button>
           </div>
         </CardHeader>
-        
-        <CardContent className="p-4">
-          {projects.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No projects found</p>
-              <Button variant="outline" className="mt-4" onClick={() => setNewProjectDialogOpen(true)}>
-                Create New Project
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {projects.map((project) => {
-                const { data: files = [] } = getFilesByProject(project.id);
-                const isExpanded = expandedProjects[project.id];
-                
-                return (
-                  <div key={project.id} className="mb-4">
-                    <div 
-                      className="flex items-center justify-between mb-2 cursor-pointer"
-                      onClick={() => toggleExpand(project.id)}
-                    >
-                      <div className="flex items-center">
-                        <i className={`ri-arrow-${isExpanded ? 'down' : 'right'}-s-line mr-2 text-muted-foreground`}></i>
-                        <span className="font-medium">{project.name}</span>
-                      </div>
-                      <span className={cn(
-                        "text-xs px-2 py-0.5 rounded-full",
-                        project.status === 'active' 
-                          ? "bg-primary bg-opacity-20 text-primary" 
-                          : "bg-muted text-muted-foreground"
-                      )}>
-                        {project.status}
-                      </span>
+        <CardContent className="px-3 py-2">
+          <div className="space-y-1">
+            {projects.map((project) => {
+              const isExpanded = expandedProjects.includes(project.id);
+              
+              // Query to get files for this project if expanded
+              const { data: files = [] } = useQuery<File[]>({
+                queryKey: [`/api/files/project/${project.id}`],
+                enabled: isExpanded,
+              });
+              
+              return (
+                <div key={project.id} className="mb-2">
+                  <div 
+                    className={`flex items-center justify-between py-2 px-2 rounded cursor-pointer ${
+                      isExpanded ? 'bg-background text-primary' : ''
+                    }`}
+                    onClick={() => toggleExpand(project.id)}
+                  >
+                    <div className="flex items-center">
+                      <i className={`ri-folder-${isExpanded ? 'open-' : ''}line mr-2 text-primary`}></i>
+                      <span className="text-sm font-medium">{project.name}</span>
                     </div>
-                    
-                    {isExpanded && (
-                      <div className="pl-6 space-y-1">
-                        {files.map((file) => (
-                          <div 
-                            key={file.id}
-                            className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer"
-                            onClick={() => handleFileClick(file.id)}
-                          >
-                            <i className={`${getFileIcon(file.fileType)} mr-2`}></i>
-                            <span>{file.name}</span>
-                          </div>
-                        ))}
-                        
-                        <div 
-                          className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer text-muted-foreground"
-                          onClick={() => openNewFileDialog(project.id)}
-                        >
-                          <i className="ri-add-line mr-2"></i>
-                          <span>Add new file</span>
-                        </div>
-                      </div>
-                    )}
+                    <div className="flex space-x-1">
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        className="h-6 w-6 p-0"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openNewFileDialog(project.id);
+                        }}
+                      >
+                        <i className="ri-add-line text-sm"></i>
+                      </Button>
+                    </div>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                  
+                  {isExpanded && (
+                    <div className="pl-6 space-y-1">
+                      {files.map((file: File) => (
+                        <div 
+                          key={file.id}
+                          className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer"
+                          onClick={() => onFileSelect(file.id)}
+                        >
+                          <i className={`${getFileIcon(file.fileType)} mr-2`}></i>
+                          <span>{file.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
-        
-        <div className="p-4 border-t border-border">
-          <Button 
-            className="w-full flex items-center justify-center gap-2 bg-muted-foreground/10 hover:bg-muted-foreground/20 text-foreground"
-            onClick={() => setNewProjectDialogOpen(true)}
-          >
-            <i className="ri-add-line"></i>
-            New Project
-          </Button>
-        </div>
       </Card>
 
       {/* New Project Dialog */}
       <Dialog open={newProjectDialogOpen} onOpenChange={setNewProjectDialogOpen}>
-        <DialogContent className="bg-background border-border">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Create New Project</DialogTitle>
             <DialogDescription>
-              Enter a name for your new project. You can add files to it after creation.
+              Enter the details for your new blockchain project
             </DialogDescription>
           </DialogHeader>
-          
           <form onSubmit={handleNewProject}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="project-name">Project Name</Label>
+                <Label htmlFor="name">Project Name</Label>
                 <Input
-                  id="project-name"
+                  id="name"
                   value={newProjectName}
                   onChange={(e) => setNewProjectName(e.target.value)}
-                  placeholder="My Awesome Dapp"
-                  autoFocus
+                  placeholder="My DApp"
+                  className="col-span-3"
                 />
               </div>
             </div>
-            
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setNewProjectDialogOpen(false)}
-              >
+              <Button type="button" variant="secondary" onClick={() => setNewProjectDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!newProjectName.trim()}>
-                Create Project
-              </Button>
+              <Button type="submit">Create Project</Button>
             </DialogFooter>
           </form>
         </DialogContent>
@@ -294,34 +263,32 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
 
       {/* New File Dialog */}
       <Dialog open={newFileDialogOpen} onOpenChange={setNewFileDialogOpen}>
-        <DialogContent className="bg-background border-border">
+        <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle>Create New File</DialogTitle>
             <DialogDescription>
-              Enter a name and select a type for your new file.
+              Add a new file to your project
             </DialogDescription>
           </DialogHeader>
-          
           <form onSubmit={handleNewFile}>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="file-name">File Name</Label>
+                <Label htmlFor="fileName">File Name</Label>
                 <Input
-                  id="file-name"
+                  id="fileName"
                   value={newFileName}
                   onChange={(e) => setNewFileName(e.target.value)}
-                  placeholder="MyContract.sol"
-                  autoFocus
+                  placeholder="MyContract"
+                  className="col-span-3"
                 />
               </div>
-              
               <div className="grid gap-2">
-                <Label htmlFor="file-type">File Type</Label>
+                <Label htmlFor="fileType">File Type</Label>
                 <select
-                  id="file-type"
-                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                  id="fileType"
                   value={newFileType}
                   onChange={(e) => setNewFileType(e.target.value)}
+                  className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
                 >
                   <option value="solidity">Solidity (.sol)</option>
                   <option value="javascript">JavaScript (.js)</option>
@@ -330,18 +297,11 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
                 </select>
               </div>
             </div>
-            
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setNewFileDialogOpen(false)}
-              >
+              <Button type="button" variant="secondary" onClick={() => setNewFileDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={!newFileName.trim()}>
-                Create File
-              </Button>
+              <Button type="submit">Create File</Button>
             </DialogFooter>
           </form>
         </DialogContent>

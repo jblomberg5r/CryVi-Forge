@@ -50,15 +50,14 @@ export function Sidebar() {
           const isActive = location === item.path;
           return (
             <li key={item.name}>
-              <Link href={item.path}>
-                <a className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
+              <Link href={item.path} 
+                className={`flex items-center px-3 py-2 text-sm font-medium rounded-md ${
                   isActive 
                     ? 'bg-primary bg-opacity-20 text-primary' 
                     : 'text-foreground hover:bg-muted'
                 }`}>
-                  <i className={`ri-${item.icon} mr-3`}></i>
-                  {item.name}
-                </a>
+                <i className={`ri-${item.icon} mr-3`}></i>
+                {item.name}
               </Link>
             </li>
           );
