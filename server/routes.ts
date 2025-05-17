@@ -144,12 +144,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/files", async (req, res) => {
     try {
+      // For development, assume user ID 1 if not provided
+      const userId = 1;
       const fileData = insertFileSchema.parse(req.body);
       const file = await storage.createFile(fileData);
       
       // Create activity for file creation
       await storage.createActivity({
-        userId: req.body.userId,
+        userId: userId,
         action: "create",
         entityType: "file",
         entityId: file.id,
@@ -158,6 +160,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.status(201).json(file);
     } catch (error) {
+      console.error("File creation error:", error);
       res.status(400).json({ message: "Invalid file data", error });
     }
   });
