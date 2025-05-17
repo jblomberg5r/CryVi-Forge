@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, jsonb } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -118,6 +119,60 @@ export const insertActivitySchema = createInsertSchema(activities).pick({
   entityId: true,
   details: true,
 });
+
+// Relations
+export const usersRelations = relations(users, ({ many }) => ({
+  projects: many(projects),
+  contracts: many(contracts),
+  tokens: many(tokens),
+  activities: many(activities)
+}));
+
+export const projectsRelations = relations(projects, ({ one, many }) => ({
+  user: one(users, {
+    fields: [projects.userId],
+    references: [users.id]
+  }),
+  files: many(files),
+  contracts: many(contracts)
+}));
+
+export const filesRelations = relations(files, ({ one }) => ({
+  project: one(projects, {
+    fields: [files.projectId],
+    references: [projects.id]
+  })
+}));
+
+export const contractsRelations = relations(contracts, ({ one, many }) => ({
+  user: one(users, {
+    fields: [contracts.userId],
+    references: [users.id]
+  }),
+  project: one(projects, {
+    fields: [contracts.projectId],
+    references: [projects.id]
+  }),
+  tokens: many(tokens)
+}));
+
+export const tokensRelations = relations(tokens, ({ one }) => ({
+  user: one(users, {
+    fields: [tokens.userId],
+    references: [users.id]
+  }),
+  contract: one(contracts, {
+    fields: [tokens.contractId],
+    references: [contracts.id]
+  })
+}));
+
+export const activitiesRelations = relations(activities, ({ one }) => ({
+  user: one(users, {
+    fields: [activities.userId],
+    references: [users.id]
+  })
+}));
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
