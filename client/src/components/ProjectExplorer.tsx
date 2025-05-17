@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -28,14 +28,13 @@ interface ProjectExplorerProps {
 }
 
 export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
-  const [expandedProjects, setExpandedProjects] = useState<Record<number, boolean>>({});
+  const [expandedProjects, setExpandedProjects] = useState<number[]>([1]); // Default expand first project
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [newFileDialogOpen, setNewFileDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [newFileName, setNewFileName] = useState('');
   const [newFileType, setNewFileType] = useState('solidity');
-  const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -95,21 +94,24 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     }
   });
 
-  // Get files by project
+  // Function to get files by project
   const getFilesByProject = (projectId: number) => {
     return useQuery<File[]>({
       queryKey: [`/api/files/project/${projectId}`],
-      enabled: !!expandedProjects[projectId],
+      enabled: expandedProjects.includes(projectId),
     });
   };
 
+  // Toggle project expansion
   const toggleExpand = (projectId: number) => {
-    setExpandedProjects(prev => ({
-      ...prev,
-      [projectId]: !prev[projectId]
-    }));
+    setExpandedProjects(prev => 
+      prev.includes(projectId) 
+        ? prev.filter(id => id !== projectId) 
+        : [...prev, projectId]
+    );
   };
 
+  // Handle new project creation
   const handleNewProject = (e: FormEvent) => {
     e.preventDefault();
     if (newProjectName.trim()) {
@@ -120,6 +122,7 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     }
   };
 
+  // Handle new file creation
   const handleNewFile = (e: FormEvent) => {
     e.preventDefault();
     if (newFileName.trim() && selectedProject) {
@@ -144,15 +147,13 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     }
   };
 
+  // Open new file dialog
   const openNewFileDialog = (projectId: number) => {
     setSelectedProject(projectId);
     setNewFileDialogOpen(true);
   };
 
-  const onFileSelect = (fileId: number) => {
-    setSelectedFileId(fileId);
-  };
-
+  // Get file icon based on file type
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'solidity': return 'ri-file-code-line text-primary';
@@ -217,7 +218,7 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
                           <div 
                             key={file.id}
                             className="flex items-center py-1.5 text-sm hover:bg-background px-2 rounded cursor-pointer"
-                            onClick={() => onFileSelect(file.id)}
+                            onClick={() => handleFileClick(file.id)}
                           >
                             <i className={`${getFileIcon(file.fileType)} mr-2`}></i>
                             <span>{file.name}</span>
