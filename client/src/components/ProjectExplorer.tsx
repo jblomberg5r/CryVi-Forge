@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -28,13 +28,14 @@ interface ProjectExplorerProps {
 }
 
 export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
-  const [expandedProjects, setExpandedProjects] = useState<number[]>([1]); // Default expand first project
+  const [expandedProjects, setExpandedProjects] = useState<Record<number, boolean>>({});
   const [newProjectDialogOpen, setNewProjectDialogOpen] = useState(false);
   const [newFileDialogOpen, setNewFileDialogOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<number | null>(null);
   const [newProjectName, setNewProjectName] = useState('');
   const [newFileName, setNewFileName] = useState('');
   const [newFileType, setNewFileType] = useState('solidity');
+  const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -98,16 +99,15 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
   const getFilesByProject = (projectId: number) => {
     return useQuery<File[]>({
       queryKey: [`/api/files/project/${projectId}`],
-      enabled: expandedProjects.includes(projectId),
+      enabled: !!expandedProjects[projectId],
     });
   };
 
   const toggleExpand = (projectId: number) => {
-    setExpandedProjects(prev => 
-      prev.includes(projectId) 
-        ? prev.filter(id => id !== projectId) 
-        : [...prev, projectId]
-    );
+    setExpandedProjects(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }));
   };
 
   const handleNewProject = (e: FormEvent) => {
@@ -149,6 +149,10 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
     setNewFileDialogOpen(true);
   };
 
+  const onFileSelect = (fileId: number) => {
+    setSelectedFileId(fileId);
+  };
+
   const getFileIcon = (fileType: string) => {
     switch (fileType) {
       case 'solidity': return 'ri-file-code-line text-primary';
@@ -185,7 +189,7 @@ export function ProjectExplorer({ onFileSelect }: ProjectExplorerProps) {
             <div className="space-y-4">
               {projects.map((project) => {
                 const { data: files = [] } = getFilesByProject(project.id);
-                const isExpanded = expandedProjects.includes(project.id);
+                const isExpanded = expandedProjects[project.id];
                 
                 return (
                   <div key={project.id} className="mb-4">
