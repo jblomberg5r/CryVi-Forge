@@ -5,6 +5,7 @@ import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
 import { useWallet } from '@/hooks/use-wallet';
 import { useAuth } from '@/hooks/useAuth';
+import type { User } from '@/types/user';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import {

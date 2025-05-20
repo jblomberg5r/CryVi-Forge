@@ -3,6 +3,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import type { Project, Contract, Token, Activity } from '@/types/user';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,25 +21,25 @@ export default function ProfilePage() {
   const [walletAddress, setWalletAddress] = useState(user?.walletAddress || '');
 
   // Query for user's projects
-  const { data: projects = [] } = useQuery({
+  const { data: projects = [] } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     enabled: !!user,
   });
 
   // Query for user's tokens
-  const { data: tokens = [] } = useQuery({
+  const { data: tokens = [] } = useQuery<Token[]>({
     queryKey: ['/api/tokens/user', user?.id],
     enabled: !!user?.id,
   });
 
   // Query for user's contracts
-  const { data: contracts = [] } = useQuery({
+  const { data: contracts = [] } = useQuery<Contract[]>({
     queryKey: ['/api/contracts/user', user?.id],
     enabled: !!user?.id,
   });
 
   // Query for user's activities
-  const { data: activities = [] } = useQuery({
+  const { data: activities = [] } = useQuery<Activity[]>({
     queryKey: ['/api/activities', user?.id],
     enabled: !!user?.id,
   });
