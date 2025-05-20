@@ -148,56 +148,56 @@ export function TokenCreator() {
                   <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'standard' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
                     <RadioGroupItem value="standard" id="standard" className="absolute right-4 top-4" />
                     <div className="mb-2 flex items-center">
-                      <div className="mr-2 rounded-full bg-primary/20 p-1">
-                        <i className="ri-coin-line text-primary"></i>
-                      </div>
-                      <Label htmlFor="standard" className="font-medium cursor-pointer">Standard ERC20</Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">Basic token with transfer functionality.</p>
-                  </div>
-                  
-                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'nft' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
-                    <RadioGroupItem value="nft" id="nft" className="absolute right-4 top-4" />
-                    <div className="mb-2 flex items-center">
-                      <div className="mr-2 rounded-full bg-purple-500/20 p-1">
-                        <i className="ri-nft-line text-purple-500"></i>
-                      </div>
-                      <Label htmlFor="nft" className="font-medium cursor-pointer">NFT Collection</Label>
-                    </div>
-                    <p className="text-sm text-muted-foreground">ERC721 for unique digital collectibles.</p>
-                  </div>
-                  
-                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'governance' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
-                    <RadioGroupItem value="governance" id="governance" className="absolute right-4 top-4" />
-                    <div className="mb-2 flex items-center">
                       <div className="mr-2 rounded-full bg-blue-500/20 p-1">
-                        <i className="ri-government-line text-blue-500"></i>
+                        <i className="ri-token-swap-line text-blue-500"></i>
                       </div>
-                      <Label htmlFor="governance" className="font-medium cursor-pointer">Governance Token</Label>
+                      <Label htmlFor="standard" className="font-medium cursor-pointer">Standard Token</Label>
                     </div>
-                    <p className="text-sm text-muted-foreground">ERC20 with voting capabilities for DAOs.</p>
+                    <p className="text-sm text-muted-foreground">Basic ERC20 implementation with transfer functionality</p>
                   </div>
                   
-                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'staking' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
-                    <RadioGroupItem value="staking" id="staking" className="absolute right-4 top-4" />
+                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'mintable' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
+                    <RadioGroupItem value="mintable" id="mintable" className="absolute right-4 top-4" />
                     <div className="mb-2 flex items-center">
                       <div className="mr-2 rounded-full bg-green-500/20 p-1">
-                        <i className="ri-money-dollar-box-line text-green-500"></i>
+                        <i className="ri-coins-line text-green-500"></i>
                       </div>
-                      <Label htmlFor="staking" className="font-medium cursor-pointer">Staking Token</Label>
+                      <Label htmlFor="mintable" className="font-medium cursor-pointer">Mintable Token</Label>
                     </div>
-                    <p className="text-sm text-muted-foreground">ERC20 with built-in staking rewards.</p>
+                    <p className="text-sm text-muted-foreground">ERC20 with minting capability to create new tokens</p>
+                  </div>
+                  
+                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'burnable' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
+                    <RadioGroupItem value="burnable" id="burnable" className="absolute right-4 top-4" />
+                    <div className="mb-2 flex items-center">
+                      <div className="mr-2 rounded-full bg-amber-500/20 p-1">
+                        <i className="ri-fire-line text-amber-500"></i>
+                      </div>
+                      <Label htmlFor="burnable" className="font-medium cursor-pointer">Burnable Token</Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">ERC20 with burning capability to reduce supply</p>
+                  </div>
+                  
+                  <div className={`relative rounded-lg border p-4 ${selectedTemplate === 'pausable' ? 'border-primary bg-primary/5' : 'border-border'} hover:border-primary/50 transition-colors cursor-pointer`}>
+                    <RadioGroupItem value="pausable" id="pausable" className="absolute right-4 top-4" />
+                    <div className="mb-2 flex items-center">
+                      <div className="mr-2 rounded-full bg-purple-500/20 p-1">
+                        <i className="ri-pause-circle-line text-purple-500"></i>
+                      </div>
+                      <Label htmlFor="pausable" className="font-medium cursor-pointer">Pausable Token</Label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">ERC20 with ability to pause all transfers in emergencies</p>
                   </div>
                 </RadioGroup>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-6">
                 <div>
-                  <Label htmlFor="token-name-template" className="text-sm font-medium text-muted-foreground mb-1 block">
+                  <Label htmlFor="token-name" className="text-sm font-medium text-muted-foreground mb-1 block">
                     Token Name
                   </Label>
                   <Input
-                    id="token-name-template"
+                    id="token-name"
                     placeholder="e.g., MyToken"
                     className="w-full bg-background"
                     value={tokenName}
@@ -206,11 +206,11 @@ export function TokenCreator() {
                 </div>
                 
                 <div>
-                  <Label htmlFor="token-symbol-template" className="text-sm font-medium text-muted-foreground mb-1 block">
+                  <Label htmlFor="token-symbol" className="text-sm font-medium text-muted-foreground mb-1 block">
                     Token Symbol
                   </Label>
                   <Input
-                    id="token-symbol-template"
+                    id="token-symbol"
                     placeholder="e.g., MTK"
                     className="w-full bg-background"
                     value={tokenSymbol}
@@ -219,20 +219,18 @@ export function TokenCreator() {
                 </div>
               </div>
               
-              {(selectedTemplate === 'standard' || selectedTemplate === 'governance' || selectedTemplate === 'staking') && (
-                <div>
-                  <Label htmlFor="initial-supply-template" className="text-sm font-medium text-muted-foreground mb-1 block">
-                    Initial Supply
-                  </Label>
-                  <Input
-                    id="initial-supply-template"
-                    placeholder="e.g., 1000000"
-                    className="w-full bg-background"
-                    value={initialSupply}
-                    onChange={(e) => setInitialSupply(e.target.value)}
-                  />
-                </div>
-              )}
+              <div>
+                <Label htmlFor="initial-supply" className="text-sm font-medium text-muted-foreground mb-1 block">
+                  Initial Supply
+                </Label>
+                <Input
+                  id="initial-supply"
+                  placeholder="e.g., 1000000"
+                  className="w-full bg-background"
+                  value={initialSupply}
+                  onChange={(e) => setInitialSupply(e.target.value)}
+                />
+              </div>
             </div>
           </TabsContent>
           
@@ -285,7 +283,7 @@ export function TokenCreator() {
                 
                 <div>
                   <Label htmlFor="initial-supply" className="text-sm font-medium text-muted-foreground mb-1 block">
-                    Initial Supply {tokenType === 'ERC20' ? '' : '(for ERC20)'}
+                    Initial Supply
                   </Label>
                   <Input
                     id="initial-supply"
@@ -293,7 +291,6 @@ export function TokenCreator() {
                     className="w-full bg-background"
                     value={initialSupply}
                     onChange={(e) => setInitialSupply(e.target.value)}
-                    disabled={tokenType !== 'ERC20'}
                   />
                 </div>
               </div>
@@ -349,17 +346,9 @@ export function TokenCreator() {
                       disabled={tokenType !== 'ERC20'}
                     />
                     <Label htmlFor="permit" className="ml-2 text-sm text-foreground">
-                      Permit (ERC20 only)
+                      Permit
                     </Label>
                   </div>
-                </div>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground mb-2 block">
-                  Advanced Features
-                </Label>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-y-2 gap-x-4">
                   <div className="flex items-center">
                     <Checkbox 
                       id="votable" 
@@ -370,7 +359,7 @@ export function TokenCreator() {
                       disabled={tokenType !== 'ERC20'}
                     />
                     <Label htmlFor="votable" className="ml-2 text-sm text-foreground">
-                      Voting/Governance
+                      Votable
                     </Label>
                   </div>
                   <div className="flex items-center">
@@ -383,7 +372,7 @@ export function TokenCreator() {
                       disabled={tokenType !== 'ERC20'}
                     />
                     <Label htmlFor="stakable" className="ml-2 text-sm text-foreground">
-                      Staking Rewards
+                      Stakable
                     </Label>
                   </div>
                   <div className="flex items-center">
