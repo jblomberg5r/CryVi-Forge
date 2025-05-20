@@ -5,6 +5,7 @@ import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
 import { useWallet } from '@/hooks/use-wallet';
 import { useAuth } from '@/hooks/useAuth';
+import { useWalletAuth } from '@/hooks/use-wallet-auth';
 import type { User } from '@/types/user';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -22,8 +23,9 @@ interface TopbarProps {
 
 export function Topbar({ onNewProject }: TopbarProps) {
   const { theme, setTheme } = useTheme();
-  const { isConnected } = useWallet();
+  const { isConnected, address } = useWallet();
   const { user, isAuthenticated } = useAuth();
+  const { disconnectWallet } = useWalletAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const toggleTheme = () => {
@@ -110,10 +112,15 @@ export function Topbar({ onNewProject }: TopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <div className="text-xs text-muted-foreground truncate w-full">
-                  {user?.walletAddress ? 
-                    `${user.walletAddress.substring(0, 6)}...${user.walletAddress.substring(user.walletAddress.length - 4)}` : 
+                  {address ? 
+                    `${address.substring(0, 6)}...${address.substring(address.length - 4)}` : 
                     'Wallet Connected'}
                 </div>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => disconnectWallet()}>
+                <i className="ri-logout-box-line mr-2"></i>
+                Disconnect Wallet
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
