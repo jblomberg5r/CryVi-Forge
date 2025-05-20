@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { connectWallet } from '@/lib/web3';
+import { useWallet } from '@/providers/WalletProvider';
 import { useToast } from '@/hooks/use-toast';
+import { formatWalletAddress } from '@/lib/web3';
 
 interface WalletConnectButtonProps {
   className?: string;
@@ -15,21 +16,23 @@ export function WalletConnectButton({
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const { toast } = useToast();
   
+  const { connectWallet, isConnecting: isWalletConnecting } = useWallet();
+  
   const handleConnectWallet = async () => {
     setIsConnecting(true);
     
     try {
-      const response = await connectWallet();
-      if (response.address) {
-        if (onConnect) {
-          onConnect(response.address);
-        }
-        
-        toast({
-          title: 'Wallet Connected',
-          description: `Connected to ${shortenAddress(response.address)}`,
-        });
+      await connectWallet();
+      const address = window.ethereum?.selectedAddress;
+      
+      if (address && onConnect) {
+        onConnect(address);
       }
+      
+      toast({
+        title: 'Wallet Connected',
+        description: address ? `Connected to ${formatWalletAddress(address)}` : 'Connected successfully',
+      });
     } catch (error: any) {
       console.error('Error connecting wallet:', error);
       toast({
@@ -40,10 +43,6 @@ export function WalletConnectButton({
     } finally {
       setIsConnecting(false);
     }
-  };
-  
-  const shortenAddress = (address: string) => {
-    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   return (

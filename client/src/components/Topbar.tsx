@@ -65,7 +65,7 @@ export function Topbar({ onNewProject }: TopbarProps) {
       
       <div className="flex items-center space-x-4">
         {isConnected && (
-          <NetworkSwitcher showTestnets={true} />
+          <NetworkSwitcher />
         )}
         <Button
           size="icon"
@@ -116,7 +116,21 @@ export function Topbar({ onNewProject }: TopbarProps) {
                 </div>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => disconnectWallet()}>
+              <DropdownMenuItem onClick={async () => {
+                // First disconnect the wallet
+                disconnectWallet();
+                
+                // Then log out from the server
+                try {
+                  await fetch('/api/auth/disconnect', {
+                    method: 'POST',
+                  });
+                  // Force reload to ensure clean state
+                  window.location.href = '/login';
+                } catch (error) {
+                  console.error('Error during logout:', error);
+                }
+              }}>
                 <i className="ri-logout-box-line mr-2"></i>
                 Disconnect Wallet
               </DropdownMenuItem>

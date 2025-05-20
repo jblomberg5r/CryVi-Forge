@@ -17,8 +17,26 @@ export function registerAuthRoutes(app: Express) {
     try {
       const { walletAddress, signature, message } = walletAuthSchema.parse(req.body);
       
-      // In a production app, you would verify the signature here to ensure the
-      // user actually controls the wallet address they're claiming to own
+      // Verify the signature to ensure the user controls the wallet address
+      // Ethereum signature verification
+      try {
+        const ethers = require('ethers');
+        const signerAddr = ethers.verifyMessage(message, signature);
+        
+        // Check if the recovered address matches the claimed wallet address
+        if (signerAddr.toLowerCase() !== walletAddress.toLowerCase()) {
+          return res.status(401).json({ 
+            success: false, 
+            message: 'Signature verification failed. The signature does not match the provided wallet address.' 
+          });
+        }
+      } catch (verifyError) {
+        console.error('Signature verification error:', verifyError);
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Invalid signature' 
+        });
+      }
       
       // Check if user exists with this wallet
       let user = await storage.getUserByWalletAddress(walletAddress);

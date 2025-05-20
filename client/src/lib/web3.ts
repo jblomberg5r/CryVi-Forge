@@ -1,289 +1,249 @@
 import { ethers } from 'ethers';
-import { 
-  BlockchainNetwork, 
-  getNetworkById, 
-  getNetworkByChainId, 
-  getDefaultNetwork, 
-  SUPPORTED_NETWORKS 
-} from './chains';
 
-// For ethers v6
-type EthereumProvider = {
-  on: (event: string, callback: (...args: any[]) => void) => void;
-  removeListener: (event: string, callback: (...args: any[]) => void) => void;
-  request: (request: { method: string; params?: any[] }) => Promise<any>;
-  isMetaMask?: boolean;
-  isConnected?: () => boolean;
-  networkVersion?: string;
-  chainId?: string;
-};
-
-// MetaMask provider injection
-export const getEthereumProvider = (): EthereumProvider | null => {
-  if (typeof window !== 'undefined' && (window as any).ethereum) {
-    return (window as any).ethereum as EthereumProvider;
+// Add type for Ethereum window object
+declare global {
+  interface Window {
+    ethereum?: any;
   }
-  return null;
-};
+}
 
-// Get ethers provider
-export const getProvider = (networkId?: string) => {
-  // If networkId is provided, use the RPC URL for that network
-  if (networkId) {
-    const network = getNetworkById(networkId);
-    if (network) {
-      return new ethers.JsonRpcProvider(network.rpcUrl);
-    }
-  }
-  
-  // Default to injected provider (MetaMask)
-  const ethereum = getEthereumProvider();
-  if (!ethereum) return null;
-  
-  return new ethers.BrowserProvider(ethereum as any);
-};
-
-// Connect wallet
-export const connectWallet = async () => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
-  
+/**
+ * Verifies if a wallet address is valid
+ * @param address - Ethereum wallet address to verify
+ * @returns boolean indicating if the address is valid
+ */
+export function isValidEthereumAddress(address: string): boolean {
   try {
-    const accounts = await ethereum.request({
-      method: 'eth_requestAccounts',
-    });
-    
-    // Also get the current chain ID
-    const chainId = await ethereum.request({
-      method: 'eth_chainId',
-    });
-    
-    const network = getNetworkByChainId(chainId as string);
-    
-    return accounts[0]; // Return just the address for simpler integration
+    return ethers.isAddress(address);
   } catch (error) {
-    console.error('Error connecting to wallet:', error);
-    throw error;
-  }
-};
-
-// Sign message with wallet (for authentication)
-export const signMessage = async (message: string): Promise<string> => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
-  
-  try {
-    const accounts = await ethereum.request({
-      method: 'eth_accounts',
-    });
-    
-    if (!accounts || accounts.length === 0) {
-      throw new Error('No connected account found');
-    }
-    
-    const address = accounts[0];
-    
-    // Sign the message
-    const signature = await ethereum.request({
-      method: 'personal_sign',
-      params: [message, address]
-    });
-    
-    return signature as string;
-  } catch (error) {
-    console.error('Error signing message:', error);
-    throw error;
-  }
-};
-
-// Check if wallet is connected
-export const isWalletConnected = async () => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) return false;
-  
-  try {
-    const accounts = await ethereum.request({
-      method: 'eth_accounts',
-    });
-    
-    return accounts && accounts.length > 0;
-  } catch (error) {
-    console.error('Error checking if wallet is connected:', error);
     return false;
   }
-};
+}
 
-// Get chain ID
-export const getChainId = async () => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) return null;
+/**
+ * Formats a wallet address for display (0x1234...5678)
+ * @param address - Full Ethereum wallet address
+ * @returns Shortened address for display
+ */
+export function formatWalletAddress(address: string | null | undefined): string {
+  if (!address) return '';
+  return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
+}
+
+/**
+ * Gets the name of the Ethereum network from a chain ID
+ * @param chainId - Chain ID in hex or decimal
+ * @returns Network name
+ */
+export function getNetworkName(chainId: string | null): string {
+  if (!chainId) return 'Unknown Network';
+  
+  // Convert hex to decimal if needed
+  const chainIdDecimal = chainId.startsWith('0x') 
+    ? parseInt(chainId, 16) 
+    : parseInt(chainId);
+  
+  switch (chainIdDecimal) {
+    case 1:
+      return 'Ethereum Mainnet';
+    case 5:
+      return 'Goerli Testnet';
+    case 11155111:
+      return 'Sepolia Testnet';
+    case 137:
+      return 'Polygon Mainnet';
+    case 80001:
+      return 'Mumbai Testnet';
+    case 42161:
+      return 'Arbitrum One';
+    case 421613:
+      return 'Arbitrum Goerli';
+    case 10:
+      return 'Optimism';
+    case 420:
+      return 'Optimism Goerli';
+    case 100:
+      return 'Gnosis Chain';
+    case 56:
+      return 'Binance Smart Chain';
+    case 97:
+      return 'BSC Testnet';
+    case 43114:
+      return 'Avalanche C-Chain';
+    case 43113:
+      return 'Avalanche Fuji';
+    case 1337:
+    case 31337:
+      return 'Local Network';
+    default:
+      return `Chain ID: ${chainIdDecimal}`;
+  }
+}
+
+/**
+ * Get the current chain ID from the connected wallet
+ * @returns Chain ID as a string
+ */
+export async function getChainId(): Promise<string | null> {
+  if (!isEthereumSupported()) return null;
   
   try {
-    const chainId = await ethereum.request({
-      method: 'eth_chainId',
-    });
-    
-    return chainId;
+    return await window.ethereum.request({ method: 'eth_chainId' });
   } catch (error) {
     console.error('Error getting chain ID:', error);
     return null;
   }
-};
+}
 
-// Get current network
-export const getCurrentNetwork = async (): Promise<BlockchainNetwork | null> => {
+/**
+ * Get the current network from the connected wallet
+ * @returns Network name
+ */
+export async function getCurrentNetwork(): Promise<{ chainId: string; name: string } | null> {
   const chainId = await getChainId();
   if (!chainId) return null;
   
-  const network = getNetworkByChainId(chainId as string);
-  return network || null;
-};
-
-// Add network to MetaMask
-export const addNetwork = async (networkId: string) => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
+  const network = supportedNetworks.find(n => n.chainId === chainId);
+  if (network) return network;
   
-  const network = getNetworkById(networkId);
-  if (!network) {
-    throw new Error(`Network ${networkId} not supported`);
-  }
+  return {
+    chainId,
+    name: getNetworkName(chainId)
+  };
+}
+
+/**
+ * Check if a wallet is currently connected
+ * @returns boolean indicating if a wallet is connected
+ */
+export async function isWalletConnected(): Promise<boolean> {
+  if (!isEthereumSupported()) return false;
   
   try {
-    await ethereum.request({
-      method: 'wallet_addEthereumChain',
-      params: [{
-        chainId: network.chainId,
-        chainName: network.name,
-        nativeCurrency: network.nativeCurrency,
-        rpcUrls: [network.rpcUrl],
-        blockExplorerUrls: [network.blockExplorerUrl]
-      }]
-    });
-    
-    return { success: true };
+    const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+    return accounts && accounts.length > 0;
   } catch (error) {
-    console.error('Error adding network:', error);
-    return { success: false, error };
+    console.error('Error checking wallet connection:', error);
+    return false;
   }
-};
+}
 
-// Switch network
-export const switchNetwork = async (networkId: string): Promise<{ 
-  success: boolean; 
-  network?: BlockchainNetwork;
-  error?: any;
-}> => {
-  const ethereum = getEthereumProvider();
-  if (!ethereum) {
-    throw new Error('MetaMask is not installed');
-  }
-  
-  const network = getNetworkById(networkId);
-  if (!network) {
-    throw new Error(`Network ${networkId} not supported`);
+/**
+ * Connect to a wallet and request account access
+ * @returns The connected wallet address and network
+ */
+export async function connectWallet(): Promise<{
+  address: string;
+  network: string;
+  chainId: string;
+}> {
+  if (!isEthereumSupported()) {
+    throw new Error('Ethereum provider not found. Please install MetaMask or another wallet.');
   }
   
   try {
-    await ethereum.request({
-      method: 'wallet_switchEthereumChain',
-      params: [{ chainId: network.chainId }],
-    });
+    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
     
-    return { success: true, network };
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No accounts found. Please check your wallet extension.');
+    }
+    
+    const address = accounts[0];
+    const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+    const networkName = getNetworkName(chainId);
+    
+    return {
+      address,
+      network: networkName,
+      chainId
+    };
+  } catch (error: any) {
+    console.error('Error connecting wallet:', error);
+    throw error;
+  }
+}
+
+/**
+ * Switch to a different network
+ * @param chainId - The chain ID to switch to
+ * @returns boolean indicating if the switch was successful
+ */
+export async function switchNetwork(chainId: string): Promise<boolean> {
+  if (!isEthereumSupported()) return false;
+  
+  try {
+    await window.ethereum.request({
+      method: 'wallet_switchEthereumChain',
+      params: [{ chainId }],
+    });
+    return true;
   } catch (error: any) {
     // This error code indicates that the chain has not been added to MetaMask
     if (error.code === 4902) {
-      return addNetwork(networkId);
+      const network = supportedNetworks.find(n => n.chainId === chainId);
+      
+      if (network) {
+        try {
+          await window.ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [
+              {
+                chainId,
+                chainName: network.name,
+                nativeCurrency: {
+                  name: 'Ether',
+                  symbol: 'ETH',
+                  decimals: 18,
+                },
+                rpcUrls: [`https://${network.name.toLowerCase().replace(' ', '')}.infura.io/v3/`],
+                blockExplorerUrls: [`https://${network.name.toLowerCase().includes('mainnet') ? '' : network.name.toLowerCase().replace(' ', '') + '.'}etherscan.io`],
+              },
+            ],
+          });
+          return true;
+        } catch (addError) {
+          console.error('Error adding network:', addError);
+          return false;
+        }
+      }
     }
-    console.error('Error switching network:', error);
-    return { success: false, error };
+    console.error('Error switching networks:', error);
+    return false;
   }
-};
+}
 
-// Compile and deploy contract with multi-chain support
-export const deployContract = async (
-  abi: any[], 
-  bytecode: string, 
-  args: any[] = [], 
-  networkId?: string
-) => {
-  let provider;
-  
-  // If networkId is provided, use that network's provider
-  if (networkId) {
-    provider = getProvider(networkId);
-  } else {
-    // Otherwise use the injected provider (MetaMask)
-    provider = getProvider();
-  }
-  
-  if (!provider) throw new Error('Provider not available');
-  
-  try {
-    const signer = await provider.getSigner();
-    
-    // Create contract factory
-    const factory = new ethers.ContractFactory(abi, bytecode, signer);
-    
-    // Deploy contract
-    const contract = await factory.deploy(...args);
-    
-    // Wait for deployment to be mined
-    await contract.waitForDeployment();
-    
-    // Get the deployed contract address
-    const contractAddress = await contract.getAddress();
-    
-    // Get deployment transaction
-    const tx = contract.deploymentTransaction();
-    const transactionHash = tx ? tx.hash : '';
-    
-    // Get current chain ID to include info about the network
-    const chainId = await getChainId();
-    const network = getNetworkByChainId(chainId as string);
-    
-    return {
-      success: true,
-      address: contractAddress,
-      transactionHash,
-      network: network?.name || 'Unknown Network',
-      contract
-    };
-  } catch (error) {
-    console.error('Error deploying contract:', error);
-    return { success: false, error };
-  }
-};
+/**
+ * Creates a message to sign for wallet authentication
+ * @param nonce - Unique nonce to prevent replay attacks
+ * @returns Message to sign
+ */
+export function createAuthMessage(nonce: number | string): string {
+  return `Sign this message to authenticate with CryVi Forge: ${nonce}`;
+}
 
-// Get contract instance with multi-chain support
-export const getContract = async (address: string, abi: any[], networkId?: string) => {
-  let provider;
-  
-  // If networkId is provided, use that network's provider
-  if (networkId) {
-    provider = getProvider(networkId);
-  } else {
-    // Otherwise use the injected provider (MetaMask)
-    provider = getProvider();
-  }
-  
-  if (!provider) throw new Error('Provider not available');
-  
-  return new ethers.Contract(address, abi, provider);
-};
+/**
+ * Checks if the current environment supports Ethereum (has window.ethereum)
+ * @returns boolean indicating if Ethereum is supported
+ */
+export function isEthereumSupported(): boolean {
+  return typeof window !== 'undefined' && window.ethereum !== undefined;
+}
 
-// Get contract with signer for transactions
-export const getContractWithSigner = async (address: string, abi: any[]) => {
-  const provider = getProvider();
-  if (!provider) throw new Error('Provider not available');
-  
-  const signer = await provider.getSigner();
-  return new ethers.Contract(address, abi, signer);
-};
+/**
+ * Suggested networks for the application
+ */
+export const supportedNetworks = [
+  { chainId: '0x1', name: 'Ethereum Mainnet' },
+  { chainId: '0x5', name: 'Goerli Testnet' },
+  { chainId: '0xaa36a7', name: 'Sepolia Testnet' },
+  { chainId: '0x89', name: 'Polygon Mainnet' },
+  { chainId: '0x13881', name: 'Mumbai Testnet' },
+  { chainId: '0xa4b1', name: 'Arbitrum One' },
+  { chainId: '0x66eed', name: 'Arbitrum Goerli' },
+  { chainId: '0xa', name: 'Optimism' },
+  { chainId: '0x1a4', name: 'Optimism Goerli' },
+  { chainId: '0x38', name: 'Binance Smart Chain' },
+  { chainId: '0x61', name: 'BSC Testnet' },
+  { chainId: '0xa86a', name: 'Avalanche C-Chain' },
+  { chainId: '0xa869', name: 'Avalanche Fuji' },
+];

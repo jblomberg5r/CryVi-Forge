@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { connectWallet as connectWalletUtil } from '@/lib/web3';
+import { isEthereumSupported } from '@/lib/web3';
 
 type WalletState = {
   isConnected: boolean;
@@ -39,8 +39,26 @@ export const useWallet = () => {
   // Connect wallet
   const connectWallet = useCallback(async () => {
     try {
-      const address = await connectWalletUtil();
-      updateWalletState({ isConnected: true, address });
+      if (!isEthereumSupported()) {
+        throw new Error('Ethereum provider not found. Please install MetaMask or another wallet.');
+      }
+      
+      // Request account access
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      
+      if (!accounts || accounts.length === 0) {
+        throw new Error('No accounts found. Please check your wallet extension.');
+      }
+      
+      const address = accounts[0];
+      const chainId = await window.ethereum.request({ method: 'eth_chainId' });
+      
+      updateWalletState({ 
+        isConnected: true, 
+        address, 
+        chainId 
+      });
+      
       return address;
     } catch (error) {
       console.error('Error connecting wallet:', error);
