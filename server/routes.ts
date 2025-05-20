@@ -1,6 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { setupAuth, isAuthenticated } from "./replitAuth";
 import { z } from "zod";
 import { 
   insertUserSchema, 
@@ -12,32 +13,31 @@ import {
 } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Set up authentication
+  await setupAuth(app);
+
   // API routes
   app.get("/api/health", (req, res) => {
     res.json({ status: "ok" });
   });
-
-  // User routes
-  app.post("/api/users", async (req, res) => {
+  
+  // Auth routes
+  app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userData = insertUserSchema.parse(req.body);
-      const existingUser = await storage.getUserByUsername(userData.username);
-      
-      if (existingUser) {
-        return res.status(400).json({ message: "Username already exists" });
-      }
-      
-      const user = await storage.createUser(userData);
-      res.status(201).json(user);
+      const userId = req.user.claims.sub;
+      const user = await storage.getUser(userId);
+      res.json(user);
     } catch (error) {
-      res.status(400).json({ message: "Invalid user data", error });
+      console.error("Error fetching user:", error);
+      res.status(500).json({ message: "Failed to fetch user" });
     }
   });
 
-  app.post("/api/users/wallet", async (req, res) => {
+  // User routes
+  app.post("/api/users/wallet", isAuthenticated, async (req: any, res) => {
     try {
-      const { userId, walletAddress } = z.object({
-        userId: z.number(),
+      const userId = req.user.claims.sub;
+      const { walletAddress } = z.object({
         walletAddress: z.string()
       }).parse(req.body);
       
@@ -54,9 +54,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Project routes
-  app.get("/api/projects/:userId", async (req, res) => {
+  app.get("/api/projects", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = parseInt(req.params.userId);
+      const userId = parseInt(req.user.claims.sub);
       const projects = await storage.getProjectsByUser(userId);
       res.json(projects);
     } catch (error) {
