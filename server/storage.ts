@@ -1,5 +1,5 @@
 import { 
-  users, type User, type InsertUser,
+  users, type User, type InsertUser, type UpsertUser,
   projects, type Project, type InsertProject,
   files, type File, type InsertFile,
   contracts, type Contract, type InsertContract,
@@ -12,11 +12,12 @@ import { eq, desc, sql, and } from "drizzle-orm";
 // Storage interface
 export interface IStorage {
   // User operations
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
+  getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   getUserByWalletAddress(address: string): Promise<User | undefined>;
   createUser(user: InsertUser): Promise<User>;
-  updateUserWallet(id: number, walletAddress: string): Promise<User | undefined>;
+  upsertUser(user: UpsertUser): Promise<User>;
+  updateUserWallet(id: string, walletAddress: string): Promise<User | undefined>;
 
   // Project operations
   getProject(id: number): Promise<Project | undefined>;
