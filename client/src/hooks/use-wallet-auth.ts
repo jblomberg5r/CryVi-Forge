@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useWallet } from './use-wallet';
+import { useWeb3Wallet } from './use-web3-wallet';
 import type { User } from '@/types/user';
 
 export interface WalletAuthResponse {
@@ -12,7 +12,7 @@ export interface WalletAuthResponse {
 export function useWalletAuth() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isConnected, address } = useWallet();
+  const { isConnected, address, signMessage } = useWeb3Wallet();
   const queryClient = useQueryClient();
 
   // Wallet connection mutation
@@ -22,10 +22,11 @@ export function useWalletAuth() {
         throw new Error('No wallet address available');
       }
 
-      // For a real implementation, this would sign a message with the wallet
-      // and send the signature for verification
+      // Create a unique message including a timestamp to prevent replay attacks
       const message = `Sign this message to connect to CryVi Forge: ${Date.now()}`;
-      const signature = "wallet_signature_placeholder"; // In reality, this would come from the wallet
+      
+      // Request signature from the wallet
+      const signature = await signMessage(message);
       
       const response = await fetch('/api/auth/connect', {
         method: 'POST',

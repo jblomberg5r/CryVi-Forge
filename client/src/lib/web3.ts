@@ -62,13 +62,40 @@ export const connectWallet = async () => {
     
     const network = getNetworkByChainId(chainId as string);
     
-    return {
-      address: accounts[0],
-      chainId,
-      network: network?.name || 'Unknown Network'
-    };
+    return accounts[0]; // Return just the address for simpler integration
   } catch (error) {
     console.error('Error connecting to wallet:', error);
+    throw error;
+  }
+};
+
+// Sign message with wallet (for authentication)
+export const signMessage = async (message: string): Promise<string> => {
+  const ethereum = getEthereumProvider();
+  if (!ethereum) {
+    throw new Error('MetaMask is not installed');
+  }
+  
+  try {
+    const accounts = await ethereum.request({
+      method: 'eth_accounts',
+    });
+    
+    if (!accounts || accounts.length === 0) {
+      throw new Error('No connected account found');
+    }
+    
+    const address = accounts[0];
+    
+    // Sign the message
+    const signature = await ethereum.request({
+      method: 'personal_sign',
+      params: [message, address]
+    });
+    
+    return signature as string;
+  } catch (error) {
+    console.error('Error signing message:', error);
     throw error;
   }
 };

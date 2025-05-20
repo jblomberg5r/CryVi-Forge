@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3Wallet } from '@/hooks/use-web3-wallet';
 import { useWalletAuth } from '@/hooks/use-wallet-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
-  const { isConnected, address, connectWallet } = useWallet();
+  const { isConnected, address, connectWallet } = useWeb3Wallet();
   const { connectWallet: authenticateWallet, isConnecting, error: authError } = useWalletAuth();
   const { toast } = useToast();
   const [username, setUsername] = useState('');

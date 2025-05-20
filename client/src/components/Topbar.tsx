@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3Wallet } from '@/hooks/use-web3-wallet';
 import { useAuth } from '@/hooks/useAuth';
 import { useWalletAuth } from '@/hooks/use-wallet-auth';
 import type { User } from '@/types/user';
@@ -23,7 +23,7 @@ interface TopbarProps {
 
 export function Topbar({ onNewProject }: TopbarProps) {
   const { theme, setTheme } = useTheme();
-  const { isConnected, address } = useWallet();
+  const { isConnected, address } = useWeb3Wallet();
   const { user, isAuthenticated } = useAuth();
   const { disconnectWallet } = useWalletAuth();
   const [searchTerm, setSearchTerm] = useState("");
