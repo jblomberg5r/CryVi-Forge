@@ -77,7 +77,7 @@ export function Sidebar() {
         <div className="p-4 border-b border-border flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Logo className="w-8 h-8" />
-            <h1 className="text-xl font-bold">DappForge</h1>
+            <h1 className="text-xl font-bold">CryVi Forge</h1>
           </div>
           <button
             className="md:hidden text-foreground"
@@ -100,7 +100,7 @@ export function Sidebar() {
               <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
               <Select value={network} onValueChange={setNetwork}>
                 <SelectTrigger className="bg-background text-sm h-7 w-40 border-border">
-                  <SelectValue />
+                  <SelectValue placeholder="Select network" />
                 </SelectTrigger>
                 <SelectContent>
                   {networks.map((net) => (
