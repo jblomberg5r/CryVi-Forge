@@ -4,10 +4,13 @@ import { Topbar } from '@/components/Topbar';
 import { ProjectExplorer } from '@/components/ProjectExplorer';
 import { CodeEditor } from '@/components/CodeEditor';
 import { ContractDeployment } from '@/components/ContractDeployment';
+import { ContractBuilder } from '@/components/ContractBuilder';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useQuery } from '@tanstack/react-query';
 
 export default function CodeEditorPage() {
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>('code-editor');
   
   // Fetch projects (using mock user ID 1)
   const { data: projects = [] } = useQuery<any[]>({
@@ -23,6 +26,8 @@ export default function CodeEditorPage() {
   // Handle file selection
   const handleFileSelect = (fileId: number) => {
     setSelectedFileId(fileId);
+    // Switch to code editor tab when a file is selected
+    setActiveTab('code-editor');
   };
 
   return (
@@ -41,14 +46,39 @@ export default function CodeEditorPage() {
               <ProjectExplorer onFileSelect={handleFileSelect} />
             </div>
             
-            {/* Code Editor - 3/4 width on large screens */}
+            {/* Main content area - 3/4 width on large screens */}
             <div className="lg:col-span-3">
-              <CodeEditor 
-                projectId={projects[0]?.id || 0}
-                initialFiles={files}
-              />
-              
-              <ContractDeployment projectId={projects[0]?.id || 0} />
+              <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="code-editor" className="text-sm">
+                    <i className="ri-code-s-slash-line mr-2"></i>
+                    Code Editor
+                  </TabsTrigger>
+                  <TabsTrigger value="contract-builder" className="text-sm">
+                    <i className="ri-drag-drop-line mr-2"></i>
+                    Contract Builder
+                  </TabsTrigger>
+                  <TabsTrigger value="deployment" className="text-sm">
+                    <i className="ri-rocket-line mr-2"></i>
+                    Deployment
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="code-editor" className="pt-4">
+                  <CodeEditor 
+                    projectId={projects[0]?.id || 0}
+                    initialFiles={files}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="contract-builder" className="pt-4">
+                  <ContractBuilder projectId={projects[0]?.id || 0} />
+                </TabsContent>
+                
+                <TabsContent value="deployment" className="pt-4">
+                  <ContractDeployment projectId={projects[0]?.id || 0} />
+                </TabsContent>
+              </Tabs>
             </div>
           </div>
         </div>
