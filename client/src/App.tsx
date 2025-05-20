@@ -8,6 +8,7 @@ import Dashboard from "@/pages/Dashboard";
 import CodeEditorPage from "@/pages/CodeEditorPage";
 import TokenPage from "@/pages/TokenPage";
 import ProjectsPage from "@/pages/ProjectsPage";
+import TemplatesPage from "@/pages/TemplatesPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/editor" component={CodeEditorPage} />
       <Route path="/tokens" component={TokenPage} />
       <Route path="/projects" component={ProjectsPage} />
+      <Route path="/templates" component={TemplatesPage} />
       <Route component={NotFound} />
     </Switch>
   );
