@@ -1,118 +1,146 @@
-import { useState } from 'react';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
-import { useWallet } from '@/hooks/use-wallet';
+import { NetworkSelector } from '@/components/ui/network-selector';
+import { connectWallet, isWalletConnected, getCurrentNetwork } from '@/lib/web3';
+import { getNetworkByChainId } from '@/lib/chains';
 import { useToast } from '@/hooks/use-toast';
 
-type WalletOption = {
-  name: string;
-  icon: string;
-  color: string;
-};
+interface WalletConnectProps {
+  showNetworkSelector?: boolean;
+  className?: string;
+}
 
-const walletOptions: WalletOption[] = [
-  { name: 'MetaMask', icon: 'wallet-3-line', color: 'bg-orange-500' },
-  { name: 'WalletConnect', icon: 'wallet-3-line', color: 'bg-blue-500' },
-  { name: 'Coinbase Wallet', icon: 'wallet-3-line', color: 'bg-purple-500' },
-];
-
-export function WalletConnectButton() {
-  const { connectWallet, isConnected, disconnect, address, chainId } = useWallet();
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
+export function WalletConnect({ 
+  showNetworkSelector = true,
+  className = ''
+}: WalletConnectProps) {
+  const [address, setAddress] = useState<string | null>(null);
+  const [networkName, setNetworkName] = useState<string | null>(null);
+  const [isConnecting, setIsConnecting] = useState<boolean>(false);
   const { toast } = useToast();
 
-  const handleConnect = async (walletName: string) => {
-    try {
-      if (walletName === 'MetaMask') {
-        await connectWallet();
-        setIsDialogOpen(false);
-        toast({
-          title: "Wallet connected",
-          description: "Your MetaMask wallet has been connected successfully.",
-        });
+  useEffect(() => {
+    const checkWalletConnection = async () => {
+      try {
+        const connected = await isWalletConnected();
+        
+        if (connected) {
+          const ethereum = (window as any).ethereum;
+          if (ethereum?.selectedAddress) {
+            setAddress(ethereum.selectedAddress);
+          }
+          
+          // Get current network
+          const chainId = await ethereum.request({ method: 'eth_chainId' });
+          const network = getNetworkByChainId(chainId);
+          if (network) {
+            setNetworkName(network.name);
+          }
+        }
+      } catch (error) {
+        console.error('Error checking wallet connection:', error);
+      }
+    };
+    
+    checkWalletConnection();
+    
+    // Listen for account changes
+    const handleAccountsChanged = (accounts: string[]) => {
+      if (accounts.length === 0) {
+        setAddress(null);
       } else {
+        setAddress(accounts[0]);
+      }
+    };
+    
+    // Listen for chain changes
+    const handleChainChanged = async () => {
+      const network = await getCurrentNetwork();
+      setNetworkName(network?.name || null);
+      
+      toast({
+        title: 'Network Changed',
+        description: `You are now connected to ${network?.name || 'Unknown Network'}`,
+      });
+    };
+    
+    const ethereum = (window as any).ethereum;
+    if (ethereum) {
+      ethereum.on('accountsChanged', handleAccountsChanged);
+      ethereum.on('chainChanged', handleChainChanged);
+    }
+    
+    return () => {
+      if (ethereum) {
+        ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        ethereum.removeListener('chainChanged', handleChainChanged);
+      }
+    };
+  }, [toast]);
+
+  const handleConnectWallet = async () => {
+    setIsConnecting(true);
+    
+    try {
+      const response = await connectWallet();
+      if (response.address) {
+        setAddress(response.address);
+        setNetworkName(response.network);
+        
         toast({
-          title: "Not supported",
-          description: `${walletName} is not supported yet. Please use MetaMask.`,
-          variant: "destructive",
+          title: 'Wallet Connected',
+          description: `Connected to ${shortenAddress(response.address)}`,
         });
       }
-    } catch (error) {
-      console.error("Connection error:", error);
+    } catch (error: any) {
+      console.error('Error connecting wallet:', error);
       toast({
-        title: "Connection failed",
-        description: "Could not connect to wallet. Please try again.",
-        variant: "destructive",
+        title: 'Connection Failed',
+        description: error.message || 'Could not connect to wallet',
+        variant: 'destructive',
       });
+    } finally {
+      setIsConnecting(false);
     }
   };
-
-  const handleDisconnect = () => {
-    disconnect();
-    toast({
-      title: "Wallet disconnected",
-      description: "Your wallet has been disconnected.",
-    });
+  
+  const shortenAddress = (address: string) => {
+    return `${address.substring(0, 6)}...${address.substring(address.length - 4)}`;
   };
 
   return (
-    <>
-      {isConnected ? (
-        <Button 
-          variant="outline" 
-          className="w-full flex items-center justify-center gap-2"
-          onClick={handleDisconnect}
-        >
-          <i className="ri-wallet-3-line"></i>
-          {address?.slice(0, 6)}...{address?.slice(-4)}
+    <div className={`flex items-center gap-2 ${className}`}>
+      {showNetworkSelector && address && (
+        <NetworkSelector 
+          showTestnets={true}
+          className="mr-2"
+        />
+      )}
+      
+      {address ? (
+        <Button variant="outline" className="bg-muted-foreground/10 font-mono">
+          {networkName && (
+            <span className="mr-2 text-xs px-2 py-0.5 rounded-full bg-green-500/10 text-green-500">
+              {networkName}
+            </span>
+          )}
+          {shortenAddress(address)}
         </Button>
       ) : (
         <Button 
-          className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-opacity-90 text-white"
-          onClick={() => setIsDialogOpen(true)}
+          onClick={handleConnectWallet}
+          disabled={isConnecting}
         >
-          <i className="ri-wallet-3-line"></i>
-          Connect Wallet
+          {isConnecting ? (
+            <>
+              <span className="mr-2 animate-spin">↻</span>
+              Connecting...
+            </>
+          ) : (
+            'Connect Wallet'
+          )}
         </Button>
       )}
-
-      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="bg-background border border-border sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">Connect Wallet</DialogTitle>
-            <DialogDescription className="text-muted-foreground">
-              Connect your wallet to deploy contracts, create tokens, and interact with the blockchain.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-3 mb-6">
-            {walletOptions.map((wallet) => (
-              <Button
-                key={wallet.name}
-                variant="outline"
-                className="w-full flex items-center justify-between p-4 rounded-lg hover:bg-muted"
-                onClick={() => handleConnect(wallet.name)}
-              >
-                <div className="flex items-center">
-                  <div className={`w-8 h-8 ${wallet.color} rounded-md flex items-center justify-center text-white mr-3`}>
-                    <i className={`ri-${wallet.icon}`}></i>
-                  </div>
-                  <span className="font-medium">{wallet.name}</span>
-                </div>
-                <i className="ri-arrow-right-line"></i>
-              </Button>
-            ))}
-          </div>
-          
-          <div className="text-center text-sm text-muted-foreground">
-            <p>
-              By connecting your wallet, you agree to our 
-              <a href="#" className="text-primary hover:underline ml-1">Terms of Service</a> and 
-              <a href="#" className="text-primary hover:underline ml-1">Privacy Policy</a>.
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </>
+    </div>
   );
 }

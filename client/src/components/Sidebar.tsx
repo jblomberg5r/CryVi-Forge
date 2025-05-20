@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { WalletConnectButton } from './ui/wallet-connect';
+import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Logo } from '@/icons/Logo';
 
@@ -112,7 +112,13 @@ export function Sidebar() {
             </div>
           </div>
           
-          <WalletConnectButton />
+          <Button 
+            variant="outline" 
+            className="w-full"
+            onClick={() => {}}
+          >
+            Connect Wallet
+          </Button>
         </div>
       </div>
       

@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
 import { useWallet } from '@/hooks/use-wallet';
+import { NetworkSwitcher } from '@/components/ui/network-switcher';
 
 interface TopbarProps {
   onNewProject?: () => void;
@@ -46,6 +47,9 @@ export function Topbar({ onNewProject }: TopbarProps) {
       </div>
       
       <div className="flex items-center space-x-4">
+        {isConnected && (
+          <NetworkSwitcher showTestnets={true} />
+        )}
         <Button
           size="icon"
           variant="ghost"

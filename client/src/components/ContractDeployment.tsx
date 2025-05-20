@@ -10,6 +10,8 @@ import { useWallet } from '@/hooks/use-wallet';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
+import { getNetworkByChainId } from '@/lib/chains';
+import { ChainSelector } from '@/components/ChainSelector';
 
 interface ContractDeploymentProps {
   projectId: number;
@@ -77,13 +79,10 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
   });
 
   const getNetworkName = (chainId?: string) => {
-    switch (chainId) {
-      case '0x1': return 'Ethereum Mainnet';
-      case '0xaa36a7': return 'Ethereum Sepolia';
-      case '0x13881': return 'Polygon Mumbai';
-      case '0x61': return 'BSC Testnet';
-      default: return 'Unknown Network';
-    }
+    if (!chainId) return 'Unknown Network';
+    
+    const network = getNetworkByChainId(chainId);
+    return network ? network.name : 'Unknown Network';
   };
 
   const handleDeploy = (e: FormEvent) => {
@@ -126,11 +125,7 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
       <CardHeader className="p-4 border-b border-border flex items-center justify-between">
         <CardTitle className="font-semibold">Contract Deployment</CardTitle>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-muted-foreground">Current Network:</span>
-          <div className="flex items-center px-2 py-1 bg-background rounded-full text-xs">
-            <span className="h-2 w-2 rounded-full bg-green-500 mr-2"></span>
-            <span>{getNetworkName(chainId)}</span>
-          </div>
+          <ChainSelector showTestnets={true} className="w-auto" />
         </div>
       </CardHeader>
       
