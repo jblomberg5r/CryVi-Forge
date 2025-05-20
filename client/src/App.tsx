@@ -9,6 +9,7 @@ import CodeEditorPage from "@/pages/CodeEditorPage";
 import TokenPage from "@/pages/TokenPage";
 import ProjectsPage from "@/pages/ProjectsPage";
 import TemplatesPage from "@/pages/TemplatesPage";
+import StoragePage from "@/pages/StoragePage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -19,6 +20,7 @@ function Router() {
       <Route path="/tokens" component={TokenPage} />
       <Route path="/projects" component={ProjectsPage} />
       <Route path="/templates" component={TemplatesPage} />
+      <Route path="/storage" component={StoragePage} />
       <Route component={NotFound} />
     </Switch>
   );

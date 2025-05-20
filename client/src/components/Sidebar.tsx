@@ -19,6 +19,7 @@ const workspaceItems: NavItem[] = [
 const developmentItems: NavItem[] = [
   { name: 'Code Editor', icon: 'code-s-slash-line', path: '/editor' },
   { name: 'Templates', icon: 'layout-grid-line', path: '/templates' },
+  { name: 'Storage', icon: 'cloud-line', path: '/storage' },
   { name: 'Documentation', icon: 'book-2-line', path: '/docs' },
   { name: 'Console', icon: 'terminal-box-line', path: '/console' },
 ];
