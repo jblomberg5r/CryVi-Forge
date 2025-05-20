@@ -83,14 +83,13 @@ export function Topbar({ onNewProject }: TopbarProps) {
           <i className="ri-notification-3-line"></i>
         </Button>
         
-        {isAuthenticated ? (
+        {isConnected ? (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                 <Avatar className="h-8 w-8">
-                  <AvatarImage src={user?.profileImageUrl || ''} alt="Profile" />
                   <AvatarFallback>
-                    {getInitials(user?.firstName, user?.lastName)}
+                    <i className="ri-user-line"></i>
                   </AvatarFallback>
                 </Avatar>
               </Button>
@@ -109,20 +108,19 @@ export function Topbar({ onNewProject }: TopbarProps) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem asChild>
-                <a href="/api/logout">
-                  <i className="ri-logout-box-line mr-2"></i>
-                  Logout
-                </a>
+              <DropdownMenuItem>
+                <div className="text-xs text-muted-foreground truncate w-full">
+                  {address?.substring(0, 6)}...{address?.substring(address.length - 4)}
+                </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
           <Button asChild variant="default" size="sm" className="gap-2">
-            <a href="/api/login">
-              <i className="ri-login-box-line"></i>
-              Sign In
-            </a>
+            <Link href="/login">
+              <i className="ri-wallet-3-line mr-1"></i>
+              Connect Wallet
+            </Link>
           </Button>
         )}
       </div>

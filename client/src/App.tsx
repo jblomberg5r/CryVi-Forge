@@ -12,6 +12,7 @@ import TemplatesPage from "@/pages/TemplatesPage";
 import StoragePage from "@/pages/StoragePage";
 import SimulatorPage from "@/pages/SimulatorPage";
 import ProfilePage from "@/pages/ProfilePage";
+import LoginPage from "@/pages/LoginPage";
 import NotFound from "@/pages/not-found";
 
 function Router() {
@@ -25,6 +26,7 @@ function Router() {
       <Route path="/storage" component={StoragePage} />
       <Route path="/simulator" component={SimulatorPage} />
       <Route path="/profile" component={ProfilePage} />
+      <Route path="/login" component={LoginPage} />
       <Route component={NotFound} />
     </Switch>
   );
