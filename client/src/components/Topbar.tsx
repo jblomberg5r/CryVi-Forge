@@ -4,7 +4,16 @@ import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
 import { useWallet } from '@/hooks/use-wallet';
+import { useAuth } from '@/hooks/useAuth';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 interface TopbarProps {
   onNewProject?: () => void;
@@ -13,10 +22,17 @@ interface TopbarProps {
 export function Topbar({ onNewProject }: TopbarProps) {
   const { theme, setTheme } = useTheme();
   const { isConnected } = useWallet();
+  const { user, isAuthenticated } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const toggleTheme = () => {
     setTheme(theme === 'dark' ? 'light' : 'dark');
+  };
+  
+  const getInitials = (firstName?: string | null, lastName?: string | null) => {
+    const first = firstName?.charAt(0) || '';
+    const last = lastName?.charAt(0) || '';
+    return (first + last).toUpperCase() || 'U';
   };
 
   return (
@@ -65,9 +81,49 @@ export function Topbar({ onNewProject }: TopbarProps) {
         >
           <i className="ri-notification-3-line"></i>
         </Button>
-        <Link href="/profile" className="w-8 h-8 rounded-full bg-muted-foreground flex items-center justify-center text-background">
-          <i className="ri-user-line"></i>
-        </Link>
+        
+        {isAuthenticated ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user?.profileImageUrl || ''} alt="Profile" />
+                  <AvatarFallback>
+                    {getInitials(user?.firstName, user?.lastName)}
+                  </AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem asChild>
+                <Link href="/profile">
+                  <i className="ri-user-line mr-2"></i>
+                  Profile
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/projects">
+                  <i className="ri-folder-line mr-2"></i>
+                  My Projects
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem asChild>
+                <a href="/api/logout">
+                  <i className="ri-logout-box-line mr-2"></i>
+                  Logout
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Button asChild variant="default" size="sm" className="gap-2">
+            <a href="/api/login">
+              <i className="ri-login-box-line"></i>
+              Sign In
+            </a>
+          </Button>
+        )}
       </div>
     </div>
   );
