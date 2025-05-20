@@ -237,7 +237,7 @@ export function TokenCreator() {
           </TabsContent>
           
           <TabsContent value="custom" className="pt-4">
-            <form className="space-y-4">
+            <div className="space-y-4">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="token-type" className="text-sm font-medium text-muted-foreground mb-1 block">
@@ -412,7 +412,7 @@ export function TokenCreator() {
                   </div>
                 </div>
               </div>
-            </form>
+            </div>
           </TabsContent>
         </Tabs>
         
