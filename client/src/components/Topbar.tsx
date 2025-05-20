@@ -110,7 +110,9 @@ export function Topbar({ onNewProject }: TopbarProps) {
               <DropdownMenuSeparator />
               <DropdownMenuItem>
                 <div className="text-xs text-muted-foreground truncate w-full">
-                  {address?.substring(0, 6)}...{address?.substring(address.length - 4)}
+                  {user?.walletAddress ? 
+                    `${user.walletAddress.substring(0, 6)}...${user.walletAddress.substring(user.walletAddress.length - 4)}` : 
+                    'Wallet Connected'}
                 </div>
               </DropdownMenuItem>
             </DropdownMenuContent>

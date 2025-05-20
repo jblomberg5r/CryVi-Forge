@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useWallet } from '@/hooks/use-wallet';
+import { useWalletAuth } from '@/hooks/use-wallet-auth';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,42 +12,38 @@ import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const { isConnected, address, connectWallet } = useWallet();
+  const { connectWallet: authenticateWallet, isConnecting, error: authError } = useWalletAuth();
   const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [, setLocation] = useLocation();
+  const queryClient = useQueryClient();
 
-  const loginMutation = useMutation({
-    mutationFn: async (data: { walletAddress: string; username?: string }) => {
-      const res = await apiRequest('POST', '/api/auth/login', data);
-      return res.json();
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Login successful',
-        description: 'Welcome to CryVi Forge!',
-        variant: 'default',
-      });
-      setLocation('/profile');
-    },
-    onError: (error) => {
-      toast({
-        title: 'Login failed',
-        description: 'There was an error logging in. Please try again.',
-        variant: 'destructive',
-      });
-      console.error('Login error:', error);
-    }
-  });
-
+  // Connect wallet and authenticate
   const handleLogin = async () => {
     if (!isConnected || !address) {
-      await connectWallet();
+      try {
+        await connectWallet();
+      } catch (error) {
+        toast({
+          title: 'Wallet Connection Failed',
+          description: 'Could not connect to your wallet. Please try again.',
+          variant: 'destructive',
+        });
+      }
       return;
     }
 
-    loginMutation.mutate({
-      walletAddress: address,
-      username: username || undefined,
+    // If wallet is connected, authenticate with backend
+    authenticateWallet();
+    
+    toast({
+      title: 'Authentication in progress',
+      description: 'Connecting wallet to CryVi Forge...',
+    });
+    
+    // Redirect after successful connection
+    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }).then(() => {
+      setLocation('/profile');
     });
   };
 
@@ -68,7 +65,7 @@ export default function LoginPage() {
                 onClick={connectWallet} 
                 size="lg" 
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={isConnecting}
               >
                 <i className="ri-wallet-3-line mr-2"></i>
                 Connect Wallet
@@ -104,9 +101,9 @@ export default function LoginPage() {
                 onClick={handleLogin} 
                 size="lg"
                 className="w-full"
-                disabled={loginMutation.isPending}
+                disabled={isConnecting}
               >
-                {loginMutation.isPending ? (
+                {isConnecting ? (
                   <>
                     <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-background border-t-transparent"></div>
                     Signing In...
@@ -115,6 +112,12 @@ export default function LoginPage() {
                   <>Sign In</>
                 )}
               </Button>
+              
+              {authError && (
+                <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
+                  {authError}
+                </div>
+              )}
             </div>
           )}
           

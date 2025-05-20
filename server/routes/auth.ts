@@ -33,7 +33,7 @@ export function registerAuthRoutes(app: Express) {
       
       // Store user info in session
       req.session.user = {
-        id: parseInt(user.id),
+        id: user.id,
         walletAddress: user.walletAddress || '',
         username: user.firstName || 'User'
       };
