@@ -287,7 +287,7 @@ export function ContractTester({
                       <SelectValue placeholder="Choose function to call" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="" disabled>Choose function to call</SelectItem>
+                      <SelectItem value="placeholder" disabled>Choose function to call</SelectItem>
                       {viewFunctions.map((func: any) => (
                         <SelectItem key={func.name} value={func.name}>
                           {func.name} (View)
@@ -406,7 +406,7 @@ export function ContractTester({
                       onValueChange={setSimulationEnvironment}
                     >
                       <SelectTrigger className="w-[180px]">
-                        <SelectValue />
+                        <SelectValue placeholder="Select environment" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="mainnet">Mainnet</SelectItem>

@@ -216,7 +216,7 @@ export default function SimulatorPage() {
                       <Label htmlFor="contract-type">Contract Type</Label>
                       <Select value={contractType} onValueChange={setContractType}>
                         <SelectTrigger id="contract-type">
-                          <SelectValue />
+                          <SelectValue placeholder="Select contract type" />
                         </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="token">ERC20 Token</SelectItem>

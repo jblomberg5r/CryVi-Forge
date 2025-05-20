@@ -42,12 +42,12 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
   const queryClient = useQueryClient();
 
   // Fetch files from the project
-  const { data: files = [] } = useQuery({
+  const { data: files = [] } = useQuery<Array<{ id: number; name: string; fileType: string; content: string }>>({
     queryKey: [`/api/files/project/${projectId}`],
   });
 
   // Get only Solidity files
-  const solidityFiles = files.filter((file: any) => file.fileType === 'solidity');
+  const solidityFiles = files.filter(file => file.fileType === 'solidity');
 
   const deployContract = useMutation({
     mutationFn: async (contractData: any) => {
