@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { useWeb3Wallet } from '@/hooks/use-web3-wallet';
-import { useWalletAuth } from '@/hooks/use-wallet-auth';
+import { useWallet } from '@/providers/WalletProvider';
 import { useToast } from '@/hooks/use-toast';
 import { useLocation } from 'wouter';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,8 +10,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
-  const { isConnected, address, connectWallet } = useWeb3Wallet();
-  const { connectWallet: authenticateWallet, isConnecting, error: authError } = useWalletAuth();
+  const { isConnected, address, connectWallet, signMessage, isConnecting, error } = useWallet();
   const { toast } = useToast();
   const [username, setUsername] = useState('');
   const [, setLocation] = useLocation();
@@ -23,10 +21,14 @@ export default function LoginPage() {
     if (!isConnected || !address) {
       try {
         await connectWallet();
-      } catch (error) {
+        toast({
+          title: 'Wallet Connected',
+          description: 'Your wallet has been connected successfully.',
+        });
+      } catch (error: any) {
         toast({
           title: 'Wallet Connection Failed',
-          description: 'Could not connect to your wallet. Please try again.',
+          description: error.message || 'Could not connect to your wallet. Please try again.',
           variant: 'destructive',
         });
       }
@@ -34,17 +36,36 @@ export default function LoginPage() {
     }
 
     // If wallet is connected, authenticate with backend
-    authenticateWallet();
-    
-    toast({
-      title: 'Authentication in progress',
-      description: 'Connecting wallet to CryVi Forge...',
-    });
-    
-    // Redirect after successful connection
-    queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] }).then(() => {
+    try {
+      // Create a unique message to sign
+      const message = `Sign this message to authenticate with CryVi Forge: ${Date.now()}`;
+      
+      // Have the user sign the message
+      const signature = await signMessage(message);
+      
+      // Send to backend to verify and authenticate
+      await fetch('/api/auth/connect', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: address, signature, message })
+      });
+      
+      toast({
+        title: 'Authentication successful',
+        description: 'You are now logged in with your wallet.',
+      });
+      
+      // Refresh user data and redirect
+      await queryClient.invalidateQueries({ queryKey: ['/api/auth/user'] });
       setLocation('/profile');
-    });
+      
+    } catch (error: any) {
+      toast({
+        title: 'Authentication Failed',
+        description: error.message || 'Failed to authenticate with your wallet. Please try again.',
+        variant: 'destructive',
+      });
+    }
   };
 
   return (
@@ -113,9 +134,9 @@ export default function LoginPage() {
                 )}
               </Button>
               
-              {authError && (
+              {error && (
                 <div className="bg-destructive/10 text-destructive rounded-md p-3 text-sm">
-                  {authError}
+                  {error}
                 </div>
               )}
             </div>

@@ -3,9 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/ui/theme-provider';
 import { Link } from 'wouter';
-import { useWeb3Wallet } from '@/hooks/use-web3-wallet';
+import { useWallet } from '@/providers/WalletProvider';
 import { useAuth } from '@/hooks/useAuth';
-import { useWalletAuth } from '@/hooks/use-wallet-auth';
 import type { User } from '@/types/user';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -23,9 +22,8 @@ interface TopbarProps {
 
 export function Topbar({ onNewProject }: TopbarProps) {
   const { theme, setTheme } = useTheme();
-  const { isConnected, address } = useWeb3Wallet();
+  const { isConnected, address, disconnectWallet } = useWallet();
   const { user, isAuthenticated } = useAuth();
-  const { disconnectWallet } = useWalletAuth();
   const [searchTerm, setSearchTerm] = useState("");
 
   const toggleTheme = () => {

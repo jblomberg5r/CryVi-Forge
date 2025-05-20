@@ -178,7 +178,7 @@ export function WalletProvider({ children }: { children: React.ReactNode }) {
       try {
         const accounts = await ethereum.request({ method: 'eth_accounts' });
         if (accounts && accounts.length > 0) {
-          connectMetaMask();
+          connectWallet();
         }
       } catch (err) {
         console.error('Error checking connection:', err);
