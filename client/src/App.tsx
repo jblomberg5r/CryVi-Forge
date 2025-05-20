@@ -3,7 +3,8 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Web3Provider } from "@/hooks/use-web3.tsx";
+import { WalletProvider } from "@/providers/WalletProvider";
+import { ThemeProvider } from "@/components/ui/theme-provider";
 import Dashboard from "@/pages/Dashboard";
 import CodeEditorPage from "@/pages/CodeEditorPage";
 import TokenPage from "@/pages/TokenPage";
@@ -35,12 +36,14 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <Web3Provider>
-        <TooltipProvider>
-          <Toaster />
-          <Router />
-        </TooltipProvider>
-      </Web3Provider>
+      <ThemeProvider defaultTheme="dark" storageKey="cryvi-theme">
+        <WalletProvider>
+          <TooltipProvider>
+            <Toaster />
+            <Router />
+          </TooltipProvider>
+        </WalletProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }
