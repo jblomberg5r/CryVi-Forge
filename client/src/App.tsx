@@ -3,7 +3,7 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { WalletProvider } from "@/providers/WalletProvider";
+import { Web3Provider } from "@/providers/Web3Provider";
 import { ThemeProvider } from "@/components/ui/theme-provider";
 import Dashboard from "@/pages/Dashboard";
 import CodeEditorPage from "@/pages/CodeEditorPage";
@@ -37,12 +37,12 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider defaultTheme="dark" storageKey="cryvi-theme">
-        <WalletProvider>
+        <Web3Provider>
           <TooltipProvider>
             <Toaster />
             <Router />
           </TooltipProvider>
-        </WalletProvider>
+        </Web3Provider>
       </ThemeProvider>
     </QueryClientProvider>
   );
