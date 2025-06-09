@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth'; // Added import
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { FormEvent } from 'react';
@@ -22,6 +23,7 @@ export default function Dashboard() {
   const [selectedFileId, setSelectedFileId] = useState<number | null>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth(); // Get user from useAuth
 
   // Fetch projects (using mock user ID 1)
   const { data: projects = [] } = useQuery<any[]>({
@@ -66,10 +68,18 @@ export default function Dashboard() {
   // Handle new project
   const handleNewProject = (e: FormEvent) => {
     e.preventDefault();
+    if (!user?.id) {
+      toast({
+        title: 'Authentication Error',
+        description: 'You must be logged in to create a project.',
+        variant: 'destructive',
+      });
+      return;
+    }
     if (newProjectName.trim()) {
       createProject.mutate({
         name: newProjectName.trim(),
-        userId: 1 // Mock user ID
+        userId: user.id
       });
     }
   };

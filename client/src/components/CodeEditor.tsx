@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useQueryClient } from '@tanstack/react-query';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 
 // Simple line number component
 const LineNumber = ({ number }: { number: number }) => (
@@ -31,7 +31,7 @@ export function CodeEditor({ projectId, initialFiles }: EditorProps) {
   const [content, setContent] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isConnected, address } = useWallet();
+  const { isConnected, address } = useWeb3(); // Changed to useWeb3
 
   useEffect(() => {
     if (initialFiles.length > 0 && !activeFileId) {

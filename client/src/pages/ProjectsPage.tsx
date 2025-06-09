@@ -12,7 +12,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 import { Link } from 'wouter';
 
 export default function ProjectsPage() {
@@ -22,7 +22,7 @@ export default function ProjectsPage() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { isConnected } = useWallet();
+  const { isConnected } = useWeb3(); // Changed to useWeb3
 
   // Fetch projects (using mock user ID 1)
   const { data: projects = [], isLoading } = useQuery<any[]>({

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useWeb3Wallet } from './use-web3-wallet';
+import { useWeb3 } from './use-web3'; // Changed import
 import type { User } from '@/types/user';
 
 export interface WalletAuthResponse {
@@ -12,7 +12,7 @@ export interface WalletAuthResponse {
 export function useWalletAuth() {
   const [isConnecting, setIsConnecting] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { isConnected, address, signMessage } = useWeb3Wallet();
+  const { isConnected, address, signMessage } = useWeb3(); // Changed to useWeb3
   const queryClient = useQueryClient();
 
   // Wallet connection mutation

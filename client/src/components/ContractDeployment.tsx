@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Checkbox } from '@/components/ui/checkbox';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -37,7 +37,7 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
     marketplace: false
   });
   
-  const { isConnected, address, chainId } = useWallet();
+  const { isConnected, address, chainId } = useWeb3(); // Changed to useWeb3
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -78,10 +78,13 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
     }
   });
 
-  const getNetworkName = (chainId?: string) => {
+  const getNetworkNameFromWeb3 = () => { // Renamed and adapted for numeric chainId
     if (!chainId) return 'Unknown Network';
-    
-    const network = getNetworkByChainId(chainId);
+    // chainId from useWeb3 is a number, getNetworkByChainId might expect string.
+    // Assuming getNetworkByChainId can handle number or we adapt its usage.
+    // For now, let's convert to string if that's what getNetworkByChainId expects.
+    // If getNetworkByChainId is robust, it might handle number directly.
+    const network = getNetworkByChainId(chainId.toString());
     return network ? network.name : 'Unknown Network';
   };
 
@@ -113,7 +116,7 @@ export function ContractDeployment({ projectId }: ContractDeploymentProps) {
     deployContract.mutate({
       name: selectedContract,
       address: `0x${Math.random().toString(16).substring(2, 42)}`,
-      network: getNetworkName(chainId),
+      network: getNetworkNameFromWeb3(), // Use adapted function
       abi: [],
       userId: 1, // Mock user ID
       projectId

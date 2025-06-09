@@ -7,10 +7,10 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 
 export default function TokenPage() {
-  const { isConnected } = useWallet();
+  const { isConnected } = useWeb3(); // Changed to useWeb3
   
   // Fetch tokens (using mock user ID 1)
   const { data: tokens = [], isLoading } = useQuery<any[]>({

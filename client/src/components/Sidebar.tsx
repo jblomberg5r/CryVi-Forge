@@ -113,13 +113,7 @@ export function Sidebar() {
             </div>
           </div>
           
-          <Button 
-            variant="outline" 
-            className="w-full"
-            onClick={() => {}}
-          >
-            Connect Wallet
-          </Button>
+          {/* Redundant Connect Wallet button removed */}
         </div>
       </div>
       
