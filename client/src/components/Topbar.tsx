@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useTheme } from '@/components/ui/theme-provider';
 import { NetworkSwitcher } from '@/components/ui/network-switcher';
+import { useWeb3 } from '@/hooks/use-web3'; // Added import
 
 interface TopbarProps {
   onNewProject?: () => void;
@@ -10,6 +11,7 @@ interface TopbarProps {
 
 export function Topbar({ onNewProject }: TopbarProps) {
   const { theme, setTheme } = useTheme();
+  const { isConnected } = useWeb3(); // Get isConnected state
   const [searchTerm, setSearchTerm] = useState("");
 
   const toggleTheme = () => {
@@ -23,7 +25,7 @@ export function Topbar({ onNewProject }: TopbarProps) {
           variant="secondary" 
           className="flex items-center space-x-2"
           onClick={onNewProject}
-          // disabled={!isConnected} // isConnected removed
+          disabled={!isConnected} // Reinstated disabled logic
         >
           <i className="ri-add-line"></i>
           <span className="ml-2 text-sm font-medium">New Project</span>

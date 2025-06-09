@@ -11,11 +11,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { useWeb3Wallet } from '@/hooks/use-web3-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 
 export default function ProfilePage() {
   const { user, isLoading: isUserLoading } = useAuth();
-  const { isConnected, address } = useWeb3Wallet();
+  const { isConnected, address } = useWeb3(); // Changed to useWeb3
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('profile');
