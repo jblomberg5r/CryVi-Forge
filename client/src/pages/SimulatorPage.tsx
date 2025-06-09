@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 import { Badge } from '@/components/ui/badge';
 
 // Sample contract ABI
@@ -132,7 +132,7 @@ export default function SimulatorPage() {
   const [contractAbi, setContractAbi] = useState<any[]>(sampleAbi);
   const [contractType, setContractType] = useState<string>('token');
   
-  const { isConnected } = useWallet();
+  const { isConnected } = useWeb3(); // Changed to useWeb3
   
   const loadExampleContract = (type: string) => {
     setContractType(type);

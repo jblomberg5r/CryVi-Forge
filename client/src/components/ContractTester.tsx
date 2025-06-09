@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 
 interface ContractTesterProps {
   contractAbi?: any[];
@@ -31,7 +31,7 @@ export function ContractTester({
   const [securityIssues, setSecurityIssues] = useState<any[]>([]);
   const [simulationEnvironment, setSimulationEnvironment] = useState<string>('mainnet');
   
-  const { isConnected } = useWallet();
+  const { isConnected } = useWeb3(); // Changed to useWeb3
   const { toast } = useToast();
 
   // Extract function definitions from ABI

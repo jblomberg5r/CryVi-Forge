@@ -3,8 +3,15 @@ import { queryClient } from "./lib/queryClient";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { Web3Provider } from "@/providers/Web3Provider";
+// import { Web3Provider } from "@/providers/Web3Provider"; // Commented out for Reown AppKit setup
 import { ThemeProvider } from "@/components/ui/theme-provider";
+
+// Reown AppKit imports
+import { createAppKit } from '@reown/appkit/react';
+import { WagmiAdapter } from '@reown/appkit-adapter-wagmi';
+import { mainnet, arbitrum } from '@reown/appkit/networks';
+import { WagmiProvider } from 'wagmi'; // New import
+
 import Dashboard from "@/pages/Dashboard";
 import CodeEditorPage from "@/pages/CodeEditorPage";
 import TokenPage from "@/pages/TokenPage";
@@ -36,16 +43,44 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <ThemeProvider defaultTheme="dark" storageKey="cryvi-theme">
-        <Web3Provider>
-          <TooltipProvider>
-            <Toaster />
-            <Router />
-          </TooltipProvider>
-        </Web3Provider>
-      </ThemeProvider>
+      <WagmiProvider config={wagmiAdapter.wagmiConfig}> {/* New Wrapper */}
+        <ThemeProvider defaultTheme="dark" storageKey="cryvi-theme">
+          {/* <Web3Provider> Commented out for Reown AppKit setup */}
+            <TooltipProvider>
+              <Toaster />
+              <Router />
+            </TooltipProvider>
+          {/* </Web3Provider> */}
+        </ThemeProvider>
+      </WagmiProvider>
     </QueryClientProvider>
   );
 }
+
+// Reown AppKit Configuration (outside component)
+const projectId = 'YOUR_PROJECT_ID';
+
+const metadata = {
+  name: 'AppKit',
+  description: 'AppKit Example',
+  url: 'https://example.com',
+  icons: ['https://avatars.githubusercontent.com/u/179229932']
+};
+
+const wagmiAdapter = new WagmiAdapter({
+  networks: [mainnet, arbitrum],
+  projectId,
+  ssr: true
+});
+
+createAppKit({
+  adapters: [wagmiAdapter],
+  networks: [mainnet, arbitrum],
+  projectId,
+  metadata,
+  features: {
+    analytics: true
+  }
+});
 
 export default App;

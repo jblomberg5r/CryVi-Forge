@@ -9,78 +9,40 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { getNetworkName, supportedNetworks } from '@/lib/web3';
-import { useWallet } from '@/providers/WalletProvider';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 
 export function NetworkSwitcher() {
-  const { chainId, provider } = useWallet();
-  const [isChanging, setIsChanging] = useState(false);
+  const { chainId, switchNetwork: switchToChain, isLoading } = useWeb3(); // Changed hook and properties
+  // const [isChanging, setIsChanging] = useState(false); // isLoading from useWeb3 can be used
 
   // Get network name from chain ID
-  const currentNetwork = getNetworkName(chainId);
+  const currentNetwork = getNetworkName(chainId ? chainId.toString() : null);
 
   // Function to switch networks
-  const switchNetwork = async (newChainId: string) => {
-    if (!provider) return;
+  const handleSwitchNetwork = async (newChainIdHex: string) => {
+    // `useWeb3().switchNetwork` expects a number
+    const newChainIdDecimal = parseInt(newChainIdHex, 16);
     
-    setIsChanging(true);
-    
+    // setIsChanging(true); // Handled by useWeb3().isLoading
     try {
-      // Check if ethereum provider is available in window
-      const ethereum = window.ethereum;
-      if (!ethereum) {
-        console.error('Ethereum provider not available');
-        return;
-      }
-      
-      // Request network switch
-      await ethereum.request({
-        method: 'wallet_switchEthereumChain',
-        params: [{ chainId: newChainId }],
-      });
-    } catch (switchError: any) {
-      // This error code indicates that the chain has not been added to MetaMask
-      if (switchError.code === 4902) {
-        // Find network details
-        const network = supportedNetworks.find(n => n.chainId === newChainId);
-        
-        if (network) {
-          try {
-            // Add network to MetaMask
-            await window.ethereum.request({
-              method: 'wallet_addEthereumChain',
-              params: [
-                {
-                  chainId: newChainId,
-                  chainName: network.name,
-                  nativeCurrency: {
-                    name: 'Ether',
-                    symbol: 'ETH',
-                    decimals: 18,
-                  },
-                  rpcUrls: [`https://${network.name.toLowerCase().replace(' ', '')}.infura.io/v3/`],
-                  blockExplorerUrls: [`https://${network.name.toLowerCase().includes('mainnet') ? '' : network.name.toLowerCase().replace(' ', '') + '.'}etherscan.io`],
-                },
-              ],
-            });
-          } catch (addError) {
-            console.error('Error adding network:', addError);
-          }
-        }
-      } else {
-        console.error('Error switching networks:', switchError);
-      }
+      await switchToChain(newChainIdDecimal);
+    } catch (error) {
+      console.error('Error switching network:', error);
+      // TODO: Handle errors, e.g., display a toast notification
+      // The "add chain" logic previously here is now omitted.
+      // Wagmi/AppKit might handle this, or useWeb3 might need enhancement.
     } finally {
-      setIsChanging(false);
+      // setIsChanging(false); // Handled by useWeb3().isLoading
     }
   };
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm" className="h-8 gap-1 text-xs">
-          <div className="w-2 h-2 rounded-full bg-green-500 mr-1"></div>
+        <Button variant="outline" size="sm" className="h-8 gap-1 text-xs" disabled={isLoading}>
+          <div className={`w-2 h-2 rounded-full mr-1 ${chainId ? 'bg-green-500' : 'bg-red-500'}`}></div>
           {currentNetwork}
-          {isChanging && (
+          {isLoading && (
             <div className="ml-1 h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
           )}
         </Button>
@@ -95,11 +57,12 @@ export function NetworkSwitcher() {
             .map(network => (
               <DropdownMenuItem
                 key={network.chainId}
-                onClick={() => switchNetwork(network.chainId)}
+                onClick={() => handleSwitchNetwork(network.chainId)}
                 className="cursor-pointer"
+                disabled={isLoading || (chainId ? parseInt(network.chainId, 16) === chainId : false)}
               >
                 {network.name}
-                {network.chainId === chainId && (
+                {(chainId && parseInt(network.chainId, 16) === chainId) && (
                   <div className="ml-auto h-2 w-2 rounded-full bg-green-500"></div>
                 )}
               </DropdownMenuItem>
@@ -111,11 +74,12 @@ export function NetworkSwitcher() {
             .map(network => (
               <DropdownMenuItem
                 key={network.chainId}
-                onClick={() => switchNetwork(network.chainId)}
+                onClick={() => handleSwitchNetwork(network.chainId)}
                 className="cursor-pointer"
+                disabled={isLoading || (chainId ? parseInt(network.chainId, 16) === chainId : false)}
               >
                 {network.name}
-                {network.chainId === chainId && (
+                {(chainId && parseInt(network.chainId, 16) === chainId) && (
                   <div className="ml-auto h-2 w-2 rounded-full bg-green-500"></div>
                 )}
               </DropdownMenuItem>
