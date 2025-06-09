@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useWallet } from '@/hooks/use-wallet';
+import { useWeb3 } from '@/hooks/use-web3'; // Changed import
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
@@ -29,7 +29,7 @@ export function TokenCreator() {
     upgradeable: false
   });
   
-  const { isConnected, address } = useWallet();
+  const { isConnected, address } = useWeb3(); // Changed to useWeb3
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
